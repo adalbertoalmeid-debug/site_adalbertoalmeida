@@ -2059,7 +2059,7 @@ nav.menu-wrap2 > ul {
 .testi-inner {max-width: 39.6875rem;}
 .testi-thumb {padding-left: 4.6875rem;}
 .testi-thumb:before {
-  content: "“";
+  content: "";
   font-size: 8.75rem;
   font-weight: 700;
   color: #fdf4b4;
