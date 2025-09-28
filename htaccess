@@ -1,0 +1,96 @@
+# =========================================
+# .htaccess - Dafonte Aquicultura (sem www)
+# =========================================
+
+# Reescrita
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# 1) Forçar HTTPS
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# 2) Remover WWW -> deixa só domínio raiz
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+# 3) Remover barra final (exceto diretórios reais)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+# 4) Canonicalizar removendo parâmetros de tracking comuns (opcional, mas recomendado)
+#    Se contém apenas parâmetros de tracking, redireciona para a versão limpa (sem query)
+RewriteCond %{QUERY_STRING} (^|&)(utm_[^&]+|gclid|fbclid|msclkid|yclid|_hsenc|_hsmi)(=|&|$) [NC]
+RewriteRule ^ %{REQUEST_URI}? [R=301,L]
+</IfModule>
+
+# Página padrão
+DirectoryIndex index.php index.html
+
+# -------------------------
+# Segurança e Headers úteis
+# -------------------------
+<IfModule mod_headers.c>
+  # Segurança
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+  # HSTS (mantém HTTPS no navegador) - ajuste o max-age se preferir
+  # ATENÇÃO: só use se o site estiver 100% em HTTPS (incluindo subdomínios se usar includeSubDomains)
+  Header always set Strict-Transport-Security "max-age=31536000; preload"
+
+  # ----------------------
+  # Canonical via HEADERS
+  # ----------------------
+  # Define a versão canônica SEM www, SEM query string
+  # Obs.: Para WordPress e páginas dinâmicas, ainda é indicado manter a <link rel="canonical"> no HTML.
+
+  # Seta uma variável de ambiente quando estivermos:
+  # - em HTTPS
+  # - no host correto
+  # - método GET (evita POST)
+  SetEnvIfNoCase Request_Method "^GET$" IS_GET=1
+  SetEnvIfNoCase Host "^dafonteaquicultura\.com\.br$" IS_HOST_OK=1
+  SetEnvIf HTTPS "on" IS_HTTPS=1
+
+  # Aplica o Link rel=canonical quando as 3 condições acima forem verdadeiras
+  Header always set Link "<https://dafonteaquicultura.com.br%{REQUEST_URI}s>; rel=\"canonical\"" env=IS_GET
+  Header always set Link "<https://dafonteaquicultura.com.br%{REQUEST_URI}s>; rel=\"canonical\"" env=IS_HOST_OK
+  Header always set Link "<https://dafonteaquicultura.com.br%{REQUEST_URI}s>; rel=\"canonical\"" env=IS_HTTPS
+</IfModule>
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "\.(env|ini|log|sh|bak|sql|git|htaccess)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Compressão Gzip
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Cache de estáticos
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/font-woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+</IfModule>
+
+# Sitemap para SEO (informativo)
+Sitemap: https://dafonteaquicultura.com.br/sitemap_index.xml
