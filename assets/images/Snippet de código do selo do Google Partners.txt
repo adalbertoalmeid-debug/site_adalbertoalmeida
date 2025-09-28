@@ -1,0 +1,5 @@
+<a href="https://www.google.com/partners/agency?id=5396137013" target="_blank">
+    <img src="https://www.gstatic.com/partners/badge/images/2025/PartnerBadgeClickable.svg"/>
+</a>
+<!-- Add the code snippet above to the sites listed to display your badge:
+    https://www.adalbertoalmeida.com/ -->
